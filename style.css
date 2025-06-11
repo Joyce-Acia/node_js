@@ -6,5 +6,7 @@
 }
 
 html {
-    background-color: #d6d7d2
+    background-color: #d6d7d2;
+    font-family: Arial, sans-serif;
+    color: var(--text-color);
 }
