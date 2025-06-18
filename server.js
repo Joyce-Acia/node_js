@@ -1,22 +1,60 @@
+const { write } = require('fs');
 var http = require('http');
-// request, response
-var server = http.createServer(function (req, res) {
-    res.writeHead(200, {'Content-Type': 'text/html'});
-    switch (req.url) {
-        case '/about':
-            res.write('<h1>This is Home/About Page</h1>');
-            break;
-        case '/profile':
-            res.write('<h1>This is About Page</h1>');
-            break;
-        case '/product':
-            res.write('<h1>This is Product Page</h1>');
-            break;
-        default:
-            res.write('<h1>404 Not Found...Why Is It Called 404? Cause 4 Means Dead!!! plz laugh</h1>');
-    }
+const mysql = require('mysql2');
+const url = require('url');
+
+const db = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: '',
+    database: 'latihan_node'
 });
 
-server.listen(8000);
-console.log("Server is running on http://localhost:8000");
+db.connect((err) => {
+    if (err) throw err;
+        console.log('MySQL connected');
+});
 
+const server = http.createServer((req, res) => {
+    const parsedUrl = url.parse(req.url, true);
+
+    if (req.method === 'GET' && parsedUrl.pathname === '/users') {
+        db.query('SELECT * FROM users', (err, results) => {
+            if (err) {
+                res.writeHead(500);
+                return res.end('Database Error');
+            }
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(results));
+            });
+
+    } else if (req.method === 'POST' && parsedUrl.pathname === '/users') {
+        let body = '';
+        req.on('data', chunk => {
+            body += chunk;
+    });
+
+    req.on('end', () => {
+        try {
+            const { name, password } = JSON.parse(body);
+            db.query('INSERT INTO users (name, password) VALUES (?, ?)', [name, password], (err) => {
+                if (err) {
+                    res.writeHead(500);
+                    return res.end('Insert Failed (unfortunately)');
+                }
+                res.writeHead(200);
+                res.end('User Added! Hore!');
+            });
+        } catch (e) {
+            res.writeHead(400);
+            res.end('Invalid JSON');
+        }
+    });
+
+    }else{
+        res.writeHead(404);
+        res.end('Not Found');
+    }
+}).listen(8000);
+
+console.log('Server running at http://localhost:8000/');

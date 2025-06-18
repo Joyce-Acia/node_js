@@ -17,5 +17,8 @@
     "url": "https://github.com/Joyce-Acia/node_js/issues"
   },
   "homepage": "https://github.com/Joyce-Acia/node_js#readme",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "mysql2": "^3.14.1"
+  }
 }
